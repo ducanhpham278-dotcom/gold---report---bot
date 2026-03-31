@@ -1,24 +1,13 @@
-# =============================================================
-# GitHub Actions Workflow — Gold Report Automation
-# Lịch gửi (ICT = UTC+7):
-#   - Chủ nhật  6:00 ICT (22:00 UTC Sat) → Tin tức tuần
-#   - Thứ 2→7  6:00 ICT (23:00 UTC)      → Vĩ mô + Tin ngày + Range
-# =============================================================
-
 name: Gold Report Bot
 
 on:
   schedule:
-    # Chủ nhật 6:00 ICT = Thứ 7 23:00 UTC
     - cron: "0 23 * * 6"
-    # Thứ 2 → Thứ 7, 6:00 ICT = 23:00 UTC ngày hôm trước
     - cron: "0 23 * * 0-5"
-
-  # Cho phép chạy thủ công từ tab Actions trên GitHub
   workflow_dispatch:
     inputs:
       report_type:
-        description: "Chọn report cần chạy thủ công"
+        description: "Chon report can chay"
         required: true
         default: "all"
         type: choice
@@ -30,132 +19,82 @@ on:
           - range
 
 jobs:
-  # -------------------------------------------------------
-  # JOB 1: Tin tức tuần (chỉ chạy Chủ nhật)
-  # -------------------------------------------------------
   weekly_news:
-    name: "📅 Tin tức tuần"
+    name: "Tin tuc tuan"
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && (
-        github.event.inputs.report_type == 'all' ||
-        github.event.inputs.report_type == 'weekly_news'
-      ) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'weekly_news')) ||
       (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 6')
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Chạy report tin tức tuần
+      - name: Run weekly news
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd scripts
-          sed -i "s|TELEGRAM_BOT_TOKEN|$TELEGRAM_BOT_TOKEN|g" report_weekly_news.py
-          sed -i "s|TELEGRAM_CHAT_ID|$TELEGRAM_CHAT_ID|g"     report_weekly_news.py
           python report_weekly_news.py
 
-  # -------------------------------------------------------
-  # JOB 2: Tin tức ngày (Thứ 2 → Thứ 7)
-  # -------------------------------------------------------
   daily_news:
-    name: "📰 Tin tức ngày"
+    name: "Tin tuc ngay"
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && (
-        github.event.inputs.report_type == 'all' ||
-        github.event.inputs.report_type == 'daily_news'
-      ) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'daily_news')) ||
       (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Chạy report tin tức ngày
+      - name: Run daily news
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd scripts
-          sed -i "s|TELEGRAM_BOT_TOKEN|$TELEGRAM_BOT_TOKEN|g" report_daily_news.py
-          sed -i "s|TELEGRAM_CHAT_ID|$TELEGRAM_CHAT_ID|g"     report_daily_news.py
           python report_daily_news.py
 
-  # -------------------------------------------------------
-  # JOB 3: Phân tích vĩ mô (Thứ 2 → Thứ 7)
-  # -------------------------------------------------------
   macro:
-    name: "📊 Phân tích vĩ mô"
+    name: "Phan tich vi mo"
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && (
-        github.event.inputs.report_type == 'all' ||
-        github.event.inputs.report_type == 'macro'
-      ) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'macro')) ||
       (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Chạy report vĩ mô
+      - name: Run macro report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd scripts
-          sed -i "s|TELEGRAM_BOT_TOKEN|$TELEGRAM_BOT_TOKEN|g"  report_macro.py
-          sed -i "s|TELEGRAM_CHAT_ID|$TELEGRAM_CHAT_ID|g"      report_macro.py
-          sed -i "s|ANTHROPIC_API_KEY|$ANTHROPIC_API_KEY|g"    report_macro.py
           python report_macro.py
 
-  # -------------------------------------------------------
-  # JOB 4: Range & Nến giá (Thứ 2 → Thứ 7)
-  # -------------------------------------------------------
   range_candle:
-    name: "📈 Range & Nến"
+    name: "Range va nen"
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'workflow_dispatch' && (
-        github.event.inputs.report_type == 'all' ||
-        github.event.inputs.report_type == 'range'
-      ) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'range')) ||
       (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Chạy report range & nến
+      - name: Run range report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd scripts
-          sed -i "s|TELEGRAM_BOT_TOKEN|$TELEGRAM_BOT_TOKEN|g" report_range.py
-          sed -i "s|TELEGRAM_CHAT_ID|$TELEGRAM_CHAT_ID|g"     report_range.py
           python report_range.py
