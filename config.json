@@ -1,0 +1,63 @@
+{
+  "telegram": {
+    "targets": [
+      {
+        "name": "ECT Group",
+        "chat_id": "-1003759736965",
+        "enabled": true,
+        "reports": ["weekly_news", "daily_news", "macro", "range"]
+      }
+    ]
+  },
+
+  "schedule": {
+    "weekly_news": "Chủ nhật 6:00 ICT",
+    "daily_news":  "Thứ 2 → Thứ 7, 6:00 ICT",
+    "macro":       "Thứ 2 → Thứ 7, 6:00 ICT",
+    "range":       "Thứ 2 → Thứ 7, 6:00 ICT"
+  },
+
+  "reports": {
+
+    "weekly_news": {
+      "enabled": true,
+      "header":  "📊 GOLD / XAUUSD WEEKLY NEWS REPORT",
+      "footer":  "Nguồn: ForexFactory Calendar",
+      "note_lines": [
+        "Theo dõi sát các sự kiện 🔴 High impact",
+        "Tránh vào lệnh 30 phút trước và sau tin quan trọng",
+        "NFP (Thứ 6) thường là sự kiện biến động lớn nhất tuần"
+      ]
+    },
+
+    "daily_news": {
+      "enabled": true,
+      "header":  "📰 GOLD / XAUUSD DAILY NEWS REPORT",
+      "footer":  "Nguồn: ForexFactory Calendar",
+      "note_lines": [
+        "Tránh vào lệnh 30 phút trước và sau tin High impact",
+        "Cuối phiên London (15:00-17:00 ICT) thường có retest",
+        "Phiên NY mở (20:30 ICT) là thời điểm biến động mạnh nhất"
+      ]
+    },
+
+    "macro": {
+      "enabled": true,
+      "header":  "📊 GOLD / XAUUSD — PHÂN TÍCH VĨ MÔ & CƠ BẢN",
+      "footer":  "Nguồn: RoboForex, LiteFinance, JPMorgan Research, OECD, CME FedWatch, World Gold Council",
+      "claude_prompt_extra": ""
+    },
+
+    "range": {
+      "enabled": true,
+      "header":  "📈 GOLD / XAUUSD — RANGE & NẾN GIÁ",
+      "footer":  "Nguồn: Yahoo Finance (GC=F Gold Futures)",
+      "note_lines": [
+        "Giá Gold Futures ≈ XAUUSD spot (chênh lệch nhỏ)",
+        "Phiên London (15:00-17:00 ICT) thường retest vùng quan trọng",
+        "Theo dõi phản ứng tại điểm giữa nến ngày để xác định bias trong ngày"
+      ]
+    }
+
+  }
+}
