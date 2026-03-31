@@ -1,39 +1,10 @@
 # REPORT 3: PHAN TICH VI MO - Claude API + web search, tu dong chia nho neu qua dai
 import urllib.request, ssl, json
 from datetime import datetime, timedelta
+from telegram_helper import send_message
 from config_loader import load_config, get_secrets, get_active_targets
 
 WEEKDAYS_VI = ["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"]
-
-def send_telegram(bot_token, chat_id, text):
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = json.dumps({"chat_id":chat_id,"text":text,
-        "parse_mode":"HTML","disable_web_page_preview":True}).encode("utf-8")
-    ctx = ssl.create_default_context()
-    req = urllib.request.Request(url,data=payload,headers={"Content-Type":"application/json"})
-    try:
-        with urllib.request.urlopen(req,context=ctx,timeout=15) as r:
-            return json.loads(r.read()).get("ok",False)
-    except Exception as e:
-        print(f"[Telegram Error] {e}"); return False
-
-def send_long(bot_token, chat_id, text):
-    """Chia nhỏ message nếu quá 4000 ký tự."""
-    if len(text) <= 4000:
-        return send_telegram(bot_token, chat_id, text)
-    # Chia tại dòng trống (paragraph break)
-    parts = text.split("\n\n")
-    chunk = ""; ok_all = True
-    for part in parts:
-        if len(chunk) + len(part) + 2 > 4000:
-            if chunk:
-                ok_all = send_telegram(bot_token, chat_id, chunk.strip()) and ok_all
-            chunk = part + "\n\n"
-        else:
-            chunk += part + "\n\n"
-    if chunk.strip():
-        ok_all = send_telegram(bot_token, chat_id, chunk.strip()) and ok_all
-    return ok_all
 
 def call_claude_with_search(prompt, key):
     url = "https://api.anthropic.com/v1/messages"
@@ -108,7 +79,7 @@ Viết report PHÂN TÍCH VĨ MÔ hoàn chỉnh theo đúng format sau. BẮT BU
     print(f"[Macro] Độ dài: {len(content)} ký tự")
     for t in targets:
         print(f"[Macro] → {t['name']}")
-        ok = send_long(secrets["bot_token"], t["chat_id"], content)
+        ok = send_message(secrets["bot_token"], t["chat_id"], content)
         print(f"  {'✅' if ok else '❌'}")
 
 if __name__ == "__main__":
