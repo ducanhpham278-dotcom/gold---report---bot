@@ -14,13 +14,33 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Luu EMA RSI vao file
+        env:
+          TF: ${{ github.event.client_payload.tf }}
+          DATA: ${{ toJson(github.event.client_payload.data) }}
         run: |
           mkdir -p data
-          TF="${{ github.event.client_payload.tf }}"
-          DATA='${{ github.event.client_payload.data }}'
-          echo "$DATA" > data/ema_rsi_${TF}.json
-          echo "✅ Saved EMA/RSI for tf=$TF"
-          cat data/ema_rsi_${TF}.json
+          python3 << 'PYEOF'
+          import os, json
+
+          tf   = os.environ.get("TF", "unknown")
+          data_raw = os.environ.get("DATA", "{}")
+
+          # data_raw co the la JSON string hoac string escaped
+          try:
+              data = json.loads(data_raw)
+              if isinstance(data, str):
+                  data = json.loads(data)
+          except:
+              data = {}
+
+          data["tf"] = tf
+          fname = f"data/ema_rsi_{tf}.json"
+          with open(fname, "w") as f:
+              json.dump(data, f, indent=2)
+
+          print(f"✅ Saved {fname}")
+          print(json.dumps(data, indent=2))
+          PYEOF
 
       - name: Commit va push
         run: |
