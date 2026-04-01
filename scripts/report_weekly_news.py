@@ -1,7 +1,7 @@
 # REPORT 1: TIN TUC TUAN - Claude tu search web
 import urllib.request, ssl, json
 from datetime import datetime, timedelta
-from telegram_helper import send_message
+from telegram_helper import send_message, call_claude_with_retry
 from config_loader import load_config, get_secrets, get_active_targets
 
 WEEKDAYS_VI = ["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"]
@@ -71,7 +71,7 @@ Nhận định: [1-2 câu phân tích]
 <i>Nguồn: ForexFactory, Investing.com</i>"""
 
     print(f"[Weekly News] Gọi Claude API với web search...")
-    content = call_claude_with_search(prompt, secrets["anthropic_key"])
+    content = call_claude_with_retry(prompt, secrets["anthropic_key"], use_search=True)
     if not content:
         content = (f"📅 <b>TIN TỨC TUẦN | {date_str} - {week_end}</b>\n"
                    f"━━━━━━━━━━━━━━━━━━━━\n"
