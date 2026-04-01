@@ -5,96 +5,60 @@ on:
     - cron: "0 23 * * 6"
     - cron: "0 23 * * 0-5"
   workflow_dispatch:
-    inputs:
-      report_type:
-        description: "Chon report can chay"
-        required: true
-        default: "all"
-        type: choice
-        options:
-          - all
-          - weekly_news
-          - daily_news
-          - macro
-          - range
 
 jobs:
-  weekly_news:
-    name: "Tin tuc tuan"
+  run_all_reports:
+    name: "Chay tat ca report"
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'weekly_news')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 6')
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run weekly news
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          cd scripts
-          python report_weekly_news.py
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  daily_news:
-    name: "Tin tuc ngay"
-    runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'daily_news')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run daily news
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          cd scripts
-          python report_daily_news.py
 
-  macro:
-    name: "Phan tich vi mo"
-    runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'macro')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run macro report
+      - name: Tin tuc tuan (Chi Nhat)
+        if: github.event.schedule == '0 23 * * 6' || github.event_name == 'workflow_dispatch'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          cd scripts
-          python report_macro.py
+        run: cd scripts && python report_weekly_news.py
 
-  range_candle:
-    name: "Range va nen"
-    runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.report_type == 'all' || github.event.inputs.report_type == 'range')) ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0-5')
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run range report
+      - name: Cho 30 giay sau weekly
+        if: github.event.schedule == '0 23 * * 6' || github.event_name == 'workflow_dispatch'
+        run: sleep 30
+
+      - name: Tin tuc ngay (Thu 2 - Thu 7)
+        if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          cd scripts
-          python report_range.py
+        run: cd scripts && python report_daily_news.py
+
+      - name: Cho 30 giay sau daily
+        if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
+        run: sleep 30
+
+      - name: Phan tich vi mo (Thu 2 - Thu 7)
+        if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: cd scripts && python report_macro.py
+
+      - name: Cho 30 giay sau macro
+        if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
+        run: sleep 30
+
+      - name: Range va Nen (Thu 2 - Thu 7)
+        if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: cd scripts && python report_range.py
