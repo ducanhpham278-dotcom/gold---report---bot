@@ -17,25 +17,9 @@ jobs:
         run: |
           mkdir -p data
           TF="${{ github.event.client_payload.tf }}"
-
-          # Luu theo tung khung thoi gian
-          echo '{
-            "tf":    "${{ github.event.client_payload.tf }}",
-            "ema34": "${{ github.event.client_payload.ema34 }}",
-            "ema89": "${{ github.event.client_payload.ema89 }}",
-            "rsi":   "${{ github.event.client_payload.rsi }}",
-            "rsi1":  "${{ github.event.client_payload.rsi1 }}",
-            "rsi2":  "${{ github.event.client_payload.rsi2 }}",
-            "rsi3":  "${{ github.event.client_payload.rsi3 }}",
-            "rsi4":  "${{ github.event.client_payload.rsi4 }}",
-            "high1": "${{ github.event.client_payload.high1 }}",
-            "high2": "${{ github.event.client_payload.high2 }}",
-            "low1":  "${{ github.event.client_payload.low1 }}",
-            "low2":  "${{ github.event.client_payload.low2 }}",
-            "close": "${{ github.event.client_payload.close }}"
-          }' > data/ema_rsi_${TF}.json
-
-          echo "Saved EMA/RSI for timeframe: $TF"
+          DATA='${{ github.event.client_payload.data }}'
+          echo "$DATA" > data/ema_rsi_${TF}.json
+          echo "✅ Saved EMA/RSI for tf=$TF"
           cat data/ema_rsi_${TF}.json
 
       - name: Commit va push
@@ -44,5 +28,5 @@ jobs:
           git config user.email "actions@github.com"
           TF="${{ github.event.client_payload.tf }}"
           git add data/ema_rsi_${TF}.json
-          git commit -m "Update EMA/RSI ${TF}: $(date -u '+%Y-%m-%d %H:%M')" || echo "No changes"
+          git commit -m "Update EMA/RSI tf=${TF}" || echo "No changes"
           git push
