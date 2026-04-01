@@ -14,43 +14,43 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Luu gia vao file
+        env:
+          EVENT_TYPE: ${{ github.event.action }}
+          PAYLOAD_OPEN:  ${{ github.event.client_payload.open }}
+          PAYLOAD_HIGH:  ${{ github.event.client_payload.high }}
+          PAYLOAD_LOW:   ${{ github.event.client_payload.low }}
+          PAYLOAD_CLOSE: ${{ github.event.client_payload.close }}
+          PAYLOAD_TIME:  ${{ github.event.client_payload.time }}
+          PAYLOAD_DATE:  ${{ github.event.client_payload.date }}
         run: |
           mkdir -p data
-          EVENT_TYPE="${{ github.event.action }}"
+          python3 << 'PYEOF'
+          import os, json
 
-          if [ "$EVENT_TYPE" = "gia_chuan_update" ]; then
-            echo '{
-              "open":  "${{ github.event.client_payload.open }}",
-              "high":  "${{ github.event.client_payload.high }}",
-              "low":   "${{ github.event.client_payload.low }}",
-              "close": "${{ github.event.client_payload.close }}",
-              "time":  "${{ github.event.client_payload.time }}"
-            }' > data/gia_chuan.json
-            echo "✅ Saved Gia Chuan 21:00 ICT"
-            cat data/gia_chuan.json
+          event_type = os.environ.get("EVENT_TYPE", "")
+          o    = os.environ.get("PAYLOAD_OPEN",  "")
+          h    = os.environ.get("PAYLOAD_HIGH",  "")
+          l    = os.environ.get("PAYLOAD_LOW",   "")
+          c    = os.environ.get("PAYLOAD_CLOSE", "")
+          t    = os.environ.get("PAYLOAD_TIME",  "")
+          date = os.environ.get("PAYLOAD_DATE",  "")
 
-          elif [ "$EVENT_TYPE" = "ohlc_d1_update" ]; then
-            echo '{
-              "open":  "${{ github.event.client_payload.open }}",
-              "high":  "${{ github.event.client_payload.high }}",
-              "low":   "${{ github.event.client_payload.low }}",
-              "close": "${{ github.event.client_payload.close }}",
-              "date":  "${{ github.event.client_payload.date }}"
-            }' > data/ohlc_d1.json
-            echo "✅ Saved OHLC D1"
-            cat data/ohlc_d1.json
+          if event_type == "gia_chuan_update":
+              fname = "data/gia_chuan.json"
+              data  = {"open": o, "high": h, "low": l, "close": c, "time": t}
+          elif event_type == "ohlc_d1_update":
+              fname = "data/ohlc_d1.json"
+              data  = {"open": o, "high": h, "low": l, "close": c, "date": date}
+          else:
+              fname = "data/latest_h1.json"
+              data  = {"open": o, "high": h, "low": l, "close": c, "time": t}
 
-          else
-            echo '{
-              "open":  "${{ github.event.client_payload.open }}",
-              "high":  "${{ github.event.client_payload.high }}",
-              "low":   "${{ github.event.client_payload.low }}",
-              "close": "${{ github.event.client_payload.close }}",
-              "time":  "${{ github.event.client_payload.time }}"
-            }' > data/latest_h1.json
-            echo "✅ Saved latest H1"
-            cat data/latest_h1.json
-          fi
+          with open(fname, "w") as f:
+              json.dump(data, f, indent=2)
+
+          print(f"✅ Saved {fname}")
+          print(json.dumps(data, indent=2))
+          PYEOF
 
       - name: Commit va push
         run: |
@@ -58,4 +58,5 @@ jobs:
           git config user.email "actions@github.com"
           git add data/
           git commit -m "Update price: ${{ github.event.action }}" || echo "No changes"
+          git pull --rebase origin main || true
           git push
