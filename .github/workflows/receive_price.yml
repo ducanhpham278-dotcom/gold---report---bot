@@ -2,7 +2,7 @@ name: Receive Price from TradingView
 
 on:
   repository_dispatch:
-    types: [price_update]
+    types: [price_update, gia_chuan_update]
 
 jobs:
   save_price:
@@ -16,19 +16,34 @@ jobs:
       - name: Luu gia vao file
         run: |
           mkdir -p data
-          echo '{
-            "open":  "${{ github.event.client_payload.open }}",
-            "high":  "${{ github.event.client_payload.high }}",
-            "low":   "${{ github.event.client_payload.low }}",
-            "close": "${{ github.event.client_payload.close }}",
-            "time":  "${{ github.event.client_payload.time }}"
-          }' > data/latest_h1.json
-          cat data/latest_h1.json
+          EVENT_TYPE="${{ github.event.action }}"
+
+          if [ "$EVENT_TYPE" = "gia_chuan_update" ]; then
+            echo '{
+              "open":  "${{ github.event.client_payload.open }}",
+              "high":  "${{ github.event.client_payload.high }}",
+              "low":   "${{ github.event.client_payload.low }}",
+              "close": "${{ github.event.client_payload.close }}",
+              "time":  "${{ github.event.client_payload.time }}"
+            }' > data/gia_chuan.json
+            echo "✅ Saved Gia Chuan 21:00 ICT"
+            cat data/gia_chuan.json
+          else
+            echo '{
+              "open":  "${{ github.event.client_payload.open }}",
+              "high":  "${{ github.event.client_payload.high }}",
+              "low":   "${{ github.event.client_payload.low }}",
+              "close": "${{ github.event.client_payload.close }}",
+              "time":  "${{ github.event.client_payload.time }}"
+            }' > data/latest_h1.json
+            echo "✅ Saved latest H1"
+            cat data/latest_h1.json
+          fi
 
       - name: Commit va push
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add data/latest_h1.json
-          git commit -m "Update H1 price: ${{ github.event.client_payload.time }}" || echo "No changes"
+          git add data/
+          git commit -m "Update price data: ${{ github.event.action }}" || echo "No changes"
           git push
