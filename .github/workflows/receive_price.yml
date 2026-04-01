@@ -1,0 +1,34 @@
+name: Receive Price from TradingView
+
+on:
+  repository_dispatch:
+    types: [price_update]
+
+jobs:
+  save_price:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Luu gia vao file
+        run: |
+          mkdir -p data
+          echo '{
+            "open":  "${{ github.event.client_payload.open }}",
+            "high":  "${{ github.event.client_payload.high }}",
+            "low":   "${{ github.event.client_payload.low }}",
+            "close": "${{ github.event.client_payload.close }}",
+            "time":  "${{ github.event.client_payload.time }}"
+          }' > data/latest_h1.json
+          cat data/latest_h1.json
+
+      - name: Commit va push
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add data/latest_h1.json
+          git commit -m "Update H1 price: ${{ github.event.client_payload.time }}" || echo "No changes"
+          git push
