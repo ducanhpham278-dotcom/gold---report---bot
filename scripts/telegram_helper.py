@@ -181,7 +181,7 @@ def call_claude_with_retry(prompt: str, key: str, use_search: bool = True,
                 print(f"[Claude] 529 Overloaded — thử lại sau {wait}s ({attempt+1}/{max_retries})")
                 time.sleep(wait)
             else:
-                print(f"[Claude Error] HTTP {e.code}: {e.reason}")
+                body = e.read().decode(); print(f"[Claude Error] HTTP {e.code}: {body[:300]}")
                 return ""
         except Exception as e:
             print(f"[Claude Error] {e}")
