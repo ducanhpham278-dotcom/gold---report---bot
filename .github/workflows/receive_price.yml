@@ -2,7 +2,7 @@ name: Receive Price from TradingView
 
 on:
   repository_dispatch:
-    types: [price_update, gia_chuan_update]
+    types: [price_update, gia_chuan_update, ohlc_d1_update]
 
 jobs:
   save_price:
@@ -28,6 +28,18 @@ jobs:
             }' > data/gia_chuan.json
             echo "✅ Saved Gia Chuan 21:00 ICT"
             cat data/gia_chuan.json
+
+          elif [ "$EVENT_TYPE" = "ohlc_d1_update" ]; then
+            echo '{
+              "open":  "${{ github.event.client_payload.open }}",
+              "high":  "${{ github.event.client_payload.high }}",
+              "low":   "${{ github.event.client_payload.low }}",
+              "close": "${{ github.event.client_payload.close }}",
+              "date":  "${{ github.event.client_payload.date }}"
+            }' > data/ohlc_d1.json
+            echo "✅ Saved OHLC D1"
+            cat data/ohlc_d1.json
+
           else
             echo '{
               "open":  "${{ github.event.client_payload.open }}",
@@ -45,5 +57,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add data/
-          git commit -m "Update price data: ${{ github.event.action }}" || echo "No changes"
+          git commit -m "Update price: ${{ github.event.action }}" || echo "No changes"
           git push
