@@ -27,9 +27,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: cd scripts && python report_weekly_news.py
 
-      - name: Cho 30 giay sau weekly
+      - name: Cho 2 phut sau weekly
         if: github.event.schedule == '0 23 * * 6' || github.event_name == 'workflow_dispatch'
-        run: sleep 30
+        run: sleep 120
 
       - name: Tin tuc ngay (Thu 2 - Thu 7)
         if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
@@ -39,9 +39,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: cd scripts && python report_daily_news.py
 
-      - name: Cho 30 giay sau daily
+      - name: Cho 2 phut sau daily
         if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
-        run: sleep 30
+        run: sleep 120
 
       - name: Phan tich vi mo (Thu 2 - Thu 7)
         if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
@@ -51,9 +51,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: cd scripts && python report_macro.py
 
-      - name: Cho 30 giay sau macro
+      - name: Cho 2 phut sau macro
         if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
-        run: sleep 30
+        run: sleep 120
 
       - name: Range va Nen (Thu 2 - Thu 7)
         if: github.event.schedule == '0 23 * * 0-5' || github.event_name == 'workflow_dispatch'
