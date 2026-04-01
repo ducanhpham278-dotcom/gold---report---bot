@@ -15,17 +15,16 @@ jobs:
 
       - name: Luu EMA RSI vao file
         env:
-          TF: ${{ github.event.client_payload.tf }}
+          TF:   ${{ github.event.client_payload.tf }}
           DATA: ${{ toJson(github.event.client_payload.data) }}
         run: |
           mkdir -p data
           python3 << 'PYEOF'
           import os, json
 
-          tf   = os.environ.get("TF", "unknown")
+          tf       = os.environ.get("TF", "unknown")
           data_raw = os.environ.get("DATA", "{}")
 
-          # data_raw co the la JSON string hoac string escaped
           try:
               data = json.loads(data_raw)
               if isinstance(data, str):
@@ -49,4 +48,5 @@ jobs:
           TF="${{ github.event.client_payload.tf }}"
           git add data/ema_rsi_${TF}.json
           git commit -m "Update EMA/RSI tf=${TF}" || echo "No changes"
+          git pull --rebase origin main || true
           git push
