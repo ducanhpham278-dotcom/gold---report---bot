@@ -2,7 +2,7 @@ name: Receive Price from TradingView
 
 on:
   repository_dispatch:
-    types: [price_update, gia_chuan_update, ohlc_d1_update]
+    types: [price_update, gia_chuan_update, ohlc_d1_update, ohlc_w1_update]
 
 jobs:
   save_price:
@@ -35,21 +35,48 @@ jobs:
           t    = os.environ.get("PAYLOAD_TIME",  "")
           date = os.environ.get("PAYLOAD_DATE",  "")
 
+          data = {"open": o, "high": h, "low": l, "close": c}
+
           if event_type == "gia_chuan_update":
-              fname = "data/gia_chuan.json"
-              data  = {"open": o, "high": h, "low": l, "close": c, "time": t}
+              data["time"] = t
+              # Luu file chinh
+              with open("data/gia_chuan.json", "w") as f:
+                  json.dump(data, f, indent=2)
+              print(f"✅ Saved gia_chuan.json")
+
           elif event_type == "ohlc_d1_update":
-              fname = "data/ohlc_d1.json"
-              data  = {"open": o, "high": h, "low": l, "close": c, "date": date}
-          else:
-              fname = "data/latest_h1.json"
-              data  = {"open": o, "high": h, "low": l, "close": c, "time": t}
+              data["date"] = date
+              # Luu file chinh (nen gan nhat)
+              with open("data/ohlc_d1.json", "w") as f:
+                  json.dump(data, f, indent=2)
+              # Luu file lich su theo ngay
+              if date:
+                  fname = f"data/ohlc_d1_{date}.json"
+                  with open(fname, "w") as f:
+                      json.dump(data, f, indent=2)
+                  print(f"✅ Saved ohlc_d1.json + {fname}")
+              else:
+                  print(f"✅ Saved ohlc_d1.json")
 
-          with open(fname, "w") as f:
-              json.dump(data, f, indent=2)
+          elif event_type == "ohlc_w1_update":
+              data["date"] = date
+              # Luu file W1 chinh
+              with open("data/ohlc_w1.json", "w") as f:
+                  json.dump(data, f, indent=2)
+              # Luu file lich su theo tuan
+              if date:
+                  fname = f"data/ohlc_w1_{date}.json"
+                  with open(fname, "w") as f:
+                      json.dump(data, f, indent=2)
+                  print(f"✅ Saved ohlc_w1.json + {fname}")
+              else:
+                  print(f"✅ Saved ohlc_w1.json")
 
-          print(f"✅ Saved {fname}")
-          print(json.dumps(data, indent=2))
+          else:  # price_update
+              data["time"] = t
+              with open("data/latest_h1.json", "w") as f:
+                  json.dump(data, f, indent=2)
+              print(f"✅ Saved latest_h1.json")
           PYEOF
 
       - name: Commit va push
@@ -57,6 +84,6 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add data/
-          git commit -m "Update price: ${{ github.event.action }}" || echo "No changes"
+          git commit -m "Update: ${{ github.event.action }} ${{ github.event.client_payload.date }}" || echo "No changes"
           git pull --rebase origin main || true
           git push
