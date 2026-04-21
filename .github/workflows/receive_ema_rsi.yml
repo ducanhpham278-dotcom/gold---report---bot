@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Luu EMA RSI vao file
         env:
@@ -49,4 +49,4 @@ jobs:
           git add data/ema_rsi_${TF}.json
           git commit -m "Update EMA/RSI tf=${TF}" || echo "No changes"
           git pull --rebase origin main || true
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ducanhpham278-dotcom/gold---report---bot.git HEAD:main
